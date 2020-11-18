@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "mvInBf2wzjqTvHTcTrIHI0i8JP/ZBhoSVL3cmN5xBicEJsofrbHG076RLVjupNdWSMNIOQb9xzEm+LaeIxnAIw==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Murad Jafarov\\source\\repos\\SignalRChat\\SignalRChat\\SignalRChat.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Murad Jafarov\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x86\\3.1.8\\microsoft.netcore.app.runtime.win-x86.3.1.8.nupkg.sha512",
+    "C:\\Users\\Murad Jafarov\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x86\\3.1.8\\microsoft.windowsdesktop.app.runtime.win-x86.3.1.8.nupkg.sha512",
+    "C:\\Users\\Murad Jafarov\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x86\\3.1.8\\microsoft.aspnetcore.app.runtime.win-x86.3.1.8.nupkg.sha512"
+  ],
+  "logs": []
+}

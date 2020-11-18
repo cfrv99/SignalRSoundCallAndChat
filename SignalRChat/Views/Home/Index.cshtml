@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<script>
+    function Login() {
+        const request = {
+            login: $("#login").val()
+        }
+        fetch("/home/index", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: JSON.stringify(request)
+        }).then(response => {
+            console.log(response);
+            if (response.status ===400) {
+                alert("This UserName Already Have");
+            }
+            else {
+                let group = '@(ViewBag.GroupName)'
+                location.href = `/chat.html`
+            }
+        })
+    }
+
+</script>
+<div class="text-center">
+    <input type="text" id="login" class="form-control" placeholder="Login" name="name" value="" />
+    <button onclick="Login()" class="btn btn-success">Login</button>
+</div>

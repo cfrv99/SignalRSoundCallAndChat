@@ -1,0 +1,200 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <script src="lib/jquery/dist/jquery.js"></script>
+    <script src="lib/aspnet-signalr/signalr.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/alertify.min.js"></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/alertify.min.css" />
+    <!-- Default theme -->
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/themes/default.min.css" />
+    <!-- Semantic UI theme -->
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/themes/semantic.min.css" />
+    <!-- Bootstrap theme -->
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/themes/bootstrap.min.css" />
+
+    <title></title>
+</head>
+<body>
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <div class="input-group">
+                        <button class="btn btn-info" onclick="generate()">Generate Group Name</button>
+                        
+                        <input class="form-control" placeholder="New Group Name" type="text" disabled name="groupname" id="groupname" value="" />
+                    </div>
+                    
+                    <br />
+                    <div class="input-group">
+                        <input class="form-control" type="text" id="joingroup" name="joingroup" placeholder="group name" value="" />
+
+                        <button class="btn btn-light" onclick="join()">Join</button>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+        <br /><br />
+              <div class="form-group">
+                  
+                  <div class="input-group">
+                      <input class="form-control" type="text" name="message" id="message" value="" placeholder="Message" />
+
+                      <button class="btn btn-success" id="send" disabled onclick="send()">Send</button>
+                  </div>
+                  <br />
+                  <ul class="list-group" id="messagesList">
+                      <li style="background-color:green" class="list-group-item">Messages</li>
+                  </ul>
+                  <br />
+                  <div id="callMessage"></div>
+              </div>
+        
+    </div>
+
+    
+    
+
+    
+    <audio id="xyz" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" preload="auto"></audio>
+    <!--<button onclick="test()">Test</button>-->
+    <script>
+        var connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
+        connection.start();
+        var randomGroupName;
+        var calling = { call: false };
+        var audio;
+        var currentConnectionId;
+        function generate() {
+            randomGroupName = Math.floor(Math.random() * 1000000);
+            $("#groupname").val(randomGroupName);
+            $("#send").attr("disabled", false);
+            connection.invoke("Subscribe", randomGroupName.toString());
+            console.log("Connected To Group:" + randomGroupName)
+        }
+
+        function join() {
+            console.log("Join Clicked");
+            let data = $("#joingroup").val();
+            randomGroupName = data;
+            $("#send").attr("disabled", false);
+            connection.invoke("Join", data.toString());
+        }
+        function send() {
+            const obj = {
+                message: $("#message").val(),
+                nickName: $("#nick").val()
+            }
+            console.log("Button Clicked");
+            connection.invoke("SendMessage", obj, randomGroupName.toString());
+        }
+        function callUser(conId) {
+            console.log("Call ishledi")
+            connection.invoke("CallUser", conId, currentConnectionId);
+        }
+        connection.on("ReceiveMessage", function (message) {
+            console.log("Working Receive")
+            var li = document.createElement("li");
+            li.setAttribute("class","list-group-item d-flex justify-content-between align-items-center")
+            console.log("Message ConnId" + message.connectionId);
+            li.innerHTML += `<span class="badge badge-primary badge-pill">${message.nickName}</span>       ${message.message}`;
+            li.innerHTML += '<span class=""><button class="btn btn-info" onClick="callUser(\'' + message.connectionId + '\')">Call User</button></span>'
+            console.log(message)
+
+            document.getElementById("messagesList").appendChild(li);
+            
+        })
+        connection.on("Connected", function (connectionId) {
+            console.log(connectionId);
+            currentConnectionId = connectionId;
+        })
+        connection.on("ReceiveCall", function (callModel) {
+            calling.call = true;
+            if (calling.call) {
+
+                var html = '<div class="card" style="width: 18rem;"><div class="card-body"><h5 class="card-title">\'' + callModel.callerUserName + '\'</h5><p class="card-text"></p><a href="#" onclick="Take(\'' + callModel.sourceConnectionId + '\')" class="btn btn-primary">Take</a><a href="#" onclick="Disline(\'' + callModel.sourceConnectionId + '\')" class="btn btn-danger">DisLine</a>'
+                $(html).appendTo("#callMessage");
+
+                audio = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
+                audio.play();
+            }
+        });
+
+        connection.on("CallStatus", function (message) {
+            alert(message);
+        });
+        function Take(sourceConnectionId) {
+            console.log("Take: "+ sourceConnectionId);
+            $("#callMessage").empty();
+            connection.invoke("TakeCall", sourceConnectionId, currentConnectionId, true);
+
+            audio.pause();
+        }
+        function Disline(sourceConnectionId) {
+            $("#callMessage").empty();
+            connection.invoke("TakeCall", sourceConnectionId, currentConnectionId, false);
+            audio.pause();
+        }
+
+        connection.on("BusyCall", function (message) {
+            alertify.alert(message);
+        })
+
+
+        function test() {
+            navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+                .then(function (stream) {
+
+                    var recorder = new MediaRecorder(stream);
+                    console.log(recorder);
+
+                    let chunks = [];//Cria uma matriz para receber as parte.
+                    recorder.ondataavailable = data => {
+                        chunks.push(data.data)//Vai adicionando as partes na matriz
+                    }
+                    console.log(chunks);
+                    //audioContext = new AudioContext();
+                    //analyser = audioContext.createAnalyser();
+                    //microphone = audioContext.createMediaStreamSource(stream);
+                    //javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+                    //analyser.smoothingTimeConstant = 0.8;
+                    //analyser.fftSize = 1024;
+
+                    //microphone.connect(analyser);
+                    //analyser.connect(javascriptNode);
+                    //javascriptNode.connect(audioContext.destination);
+                    //javascriptNode.onaudioprocess = function () {
+                    //    var array = new Uint8Array(analyser.frequencyBinCount);
+                    //    analyser.getByteFrequencyData(array);
+                    //    var values = 0;
+
+                    //    var length = array.length;
+                    //    for (var i = 0; i < length; i++) {
+                    //        values += (array[i]);
+                    //    }
+
+                    //    var average = values / length;
+
+                    //    console.log(microphone);
+                    //    // colorPids(average);
+                    //}
+                })
+                .catch(function (err) {
+                    /* handle the error */
+                });
+        }
+
+
+
+    </script>
+</body>
+</html>
